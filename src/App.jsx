@@ -56,7 +56,7 @@ const AppContent = () => {
 
 const App = () => {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <ThemeProvider>
         <AuthProvider>
           <FitnessProvider>
