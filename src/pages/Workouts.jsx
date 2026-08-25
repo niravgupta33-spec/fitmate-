@@ -1,7 +1,7 @@
 // Workouts Page (Lectures 61-66: Search/Filter/Sort, 67-72: API + Pagination + Debounce)
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FiBookmark, FiSearch, FiActivity } from 'react-icons/fi';
+import { useNavigate, Link } from 'react-router-dom';
+import { FiBookmark, FiSearch, FiActivity, FiCalendar } from 'react-icons/fi';
 import { fetchExercises, fetchExerciseCategories } from '../services/api';
 import { useDebounce } from '../hooks/useDebounce';
 import { useFitness } from '../context/FitnessContext';
@@ -10,6 +10,7 @@ import Dropdown from '../components/common/Dropdown';
 import Pagination from '../components/common/Pagination';
 import Loader from '../components/common/Loader';
 import { capitalizeFirst, truncateText } from '../utils/helpers';
+import AnatomicalTargetMap from '../components/common/AnatomicalTargetMap';
 import './Workouts.css';
 
 
@@ -118,6 +119,12 @@ const Workouts = () => {
         </h1>
         <p className="section-subtitle">Browse, search, and bookmark exercises from our database.</p>
 
+        <div style={{ marginBottom: 'var(--space-xl)' }}>
+          <Link to="/workouts/planner" className="btn btn-primary">
+            <FiCalendar style={{ marginRight: 6 }} /> Plan Today's Workout
+          </Link>
+        </div>
+
         <div className="workouts-header">
           <SearchBar value={searchTerm} onChange={setSearchTerm} placeholder="Search exercises..." />
           <div className="workouts-filters">
@@ -141,27 +148,38 @@ const Workouts = () => {
         ) : (
           <>
             <div className="workouts-grid">
-              {filteredExercises.map((ex, idx) => (
-                <article key={ex.id} className="workout-card" onClick={() => navigate(`/workouts/${ex.id}`)}>
-                  <div className="workout-card-img">
-                    <FiActivity />
-                  </div>
-                  <div className="workout-card-body">
-                    <h3>{capitalizeFirst(ex.name) || 'Unnamed Exercise'}</h3>
-                    <p>{truncateText(stripHTML(ex.description), 80) || 'No description available.'}</p>
-                  </div>
-                  <div className="workout-card-footer">
-                    <span className="badge badge-accent">ID #{ex.id}</span>
-                    <button
-                      className={`bookmark-btn ${isBookmarked(ex.id) ? 'active' : ''}`}
-                      onClick={(e) => { e.stopPropagation(); toggleBookmark(ex.id); }}
-                      aria-label={isBookmarked(ex.id) ? 'Remove bookmark' : 'Bookmark exercise'}
-                    >
-                      <FiBookmark fill={isBookmarked(ex.id) ? 'currentColor' : 'none'} />
-                    </button>
-                  </div>
-                </article>
-              ))}
+              {filteredExercises.map((ex) => {
+                const catName = typeof ex.category === 'object' ? ex.category?.name : null;
+                return (
+                  <article key={ex.id} className="workout-card" onClick={() => navigate(`/workouts/${ex.id}`)}>
+                    <div className="workout-card-img">
+                      <AnatomicalTargetMap
+                        category={ex.category}
+                        muscles={ex.muscles}
+                        secondaryMuscles={ex.muscles_secondary}
+                        compact
+                      />
+                    </div>
+                    <div className="workout-card-body">
+                      <h3>{capitalizeFirst(ex.name) || 'Unnamed Exercise'}</h3>
+                      <p>{truncateText(stripHTML(ex.description), 80) || 'No description available.'}</p>
+                    </div>
+                    <div className="workout-card-footer">
+                      <div className="workout-card-tags">
+                        {catName && <span className="badge badge-accent">{catName}</span>}
+                        <span className="badge badge-secondary">ID #{ex.id}</span>
+                      </div>
+                      <button
+                        className={`bookmark-btn ${isBookmarked(ex.id) ? 'active' : ''}`}
+                        onClick={(e) => { e.stopPropagation(); toggleBookmark(ex.id); }}
+                        aria-label={isBookmarked(ex.id) ? 'Remove bookmark' : 'Bookmark exercise'}
+                      >
+                        <FiBookmark fill={isBookmarked(ex.id) ? 'currentColor' : 'none'} />
+                      </button>
+                    </div>
+                  </article>
+                );
+              })}
             </div>
             <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
           </>

@@ -6,6 +6,7 @@ import { fetchExerciseById } from '../services/api';
 import { useFitness } from '../context/FitnessContext';
 import Loader from '../components/common/Loader';
 import { capitalizeFirst } from '../utils/helpers';
+import AnatomicalTargetMap from '../components/common/AnatomicalTargetMap';
 import './Workouts.css';
 
 const WorkoutDetail = () => {
@@ -40,11 +41,16 @@ const WorkoutDetail = () => {
     </div>
   );
 
-  const stripHTML = (html) => {
-    if (!html) return 'No description available.';
+  const getDescription = (html, exerciseName, categoryName) => {
+    const fallbackText = `${exerciseName ? capitalizeFirst(exerciseName) : 'This exercise'} is an effective${categoryName ? ` ${categoryName.toLowerCase()}` : ''} movement designed to build strength, improve endurance, and enhance overall fitness. Focus on maintaining proper form and controlled motions to maximize results and minimize the risk of injury. Incorporate this into your regular workout routine for optimal benefits.`;
+    
+    if (!html || html.trim() === '') return fallbackText;
+    
     const tmp = document.createElement('div');
     tmp.innerHTML = html;
-    return tmp.textContent || tmp.innerText || 'No description available.';
+    const text = tmp.textContent || tmp.innerText || '';
+    
+    return text.trim().length < 10 ? fallbackText : text;
   };
 
   return (
@@ -74,10 +80,18 @@ const WorkoutDetail = () => {
           <div className="card">
             <h3 style={{ marginBottom: 'var(--space-md)' }}>Description</h3>
             <p style={{ color: 'var(--color-text-secondary)', lineHeight: 1.7 }}>
-              {stripHTML(exercise?.description)}
+              {getDescription(exercise?.description, exercise?.name, exercise?.category?.name)}
             </p>
           </div>
           <div>
+            <div className="card" style={{ marginBottom: 'var(--space-lg)', overflow: 'hidden', padding: 0 }}>
+              <AnatomicalTargetMap
+                category={exercise?.category}
+                muscles={exercise?.muscles || []}
+                secondaryMuscles={exercise?.muscles_secondary || []}
+              />
+            </div>
+
             {exercise?.muscles?.length > 0 && (
               <div className="card" style={{ marginBottom: 'var(--space-lg)' }}>
                 <h3>Primary Muscles</h3>

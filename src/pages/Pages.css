@@ -54,7 +54,7 @@
 /* Nutrition Summary */
 .nutrition-summary {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: var(--space-md);
   margin-bottom: var(--space-2xl);
 }
@@ -84,7 +84,7 @@
 /* Dashboard Stats Grid */
 .dash-stats {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: var(--space-md);
   margin-bottom: var(--space-2xl);
 }

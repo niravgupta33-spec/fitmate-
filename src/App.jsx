@@ -14,6 +14,7 @@ import './App.css';
 // Lazy-loaded pages (Code Splitting — Lectures 73-78)
 const Home = lazy(() => import('./pages/Home'));
 const Workouts = lazy(() => import('./pages/Workouts'));
+const WorkoutPlanner = lazy(() => import('./pages/WorkoutPlanner'));
 const WorkoutDetail = lazy(() => import('./pages/WorkoutDetail'));
 const Calculators = lazy(() => import('./pages/Calculators'));
 const Nutrition = lazy(() => import('./pages/Nutrition'));
@@ -35,6 +36,7 @@ const AppContent = () => {
             {/* Public Routes */}
             <Route index element={<Home />} />
             <Route path="workouts" element={<Workouts />} />
+            <Route path="workouts/planner" element={<WorkoutPlanner />} />
             <Route path="workouts/:id" element={<WorkoutDetail />} />
             <Route path="calculators" element={<Calculators />} />
             <Route path="nutrition" element={<Nutrition />} />

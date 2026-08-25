@@ -19,7 +19,7 @@ export const fetchExercises = async (page = 1, limit = 20, category) => {
     return {
       ...ex,
       name: en.name || 'Unnamed Exercise',
-      description: en.description || 'No description available.'
+      description: en.description || ''
     };
   });
 
@@ -32,7 +32,7 @@ export const fetchExerciseById = async (id) => {
   return {
     ...data,
     name: en.name || 'Unnamed Exercise',
-    description: en.description || 'No description available.'
+    description: en.description || ''
   };
 };
 

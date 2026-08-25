@@ -10,6 +10,8 @@ export const FitnessProvider = ({ children }) => {
   const [meals, setMeals] = useLocalStorage('fitmate-meals', []);
   const [goals, setGoals] = useLocalStorage('fitmate-goals', { dailyCalories: 2000, dailyProtein: 150, weeklyWorkouts: 4 });
   const [bookmarks, setBookmarks] = useLocalStorage('fitmate-bookmarks', []);
+  const [waterLogs, setWaterLogs] = useLocalStorage('fitmate-water', []);
+  const [workoutPlans, setWorkoutPlans] = useLocalStorage('fitmate-plans', []);
 
   // --- CRUD: Workout Logs (Lectures 67-72) ---
   const addWorkout = useCallback((workout) => {
@@ -37,6 +39,58 @@ export const FitnessProvider = ({ children }) => {
     setMeals((prev) => prev.filter((m) => m.id !== id));
   }, [setMeals]);
 
+  // --- Water ---
+  const addWater = useCallback((amount = 1) => {
+    setWaterLogs((prev) => [{ id: generateId(), date: new Date().toISOString(), amount }, ...prev]);
+  }, [setWaterLogs]);
+
+  const removeWater = useCallback(() => {
+    setWaterLogs((prev) => {
+      const todayStr = new Date().toDateString();
+      const latestTodayIndex = prev.findIndex(w => new Date(w.date).toDateString() === todayStr);
+      if (latestTodayIndex !== -1) {
+        const newLogs = [...prev];
+        newLogs.splice(latestTodayIndex, 1);
+        return newLogs;
+      }
+      return prev;
+    });
+  }, [setWaterLogs]);
+
+  // --- Workout Plans ---
+  const addToPlan = useCallback((exercise) => {
+    setWorkoutPlans((prev) => {
+      if (prev.some(p => p.exerciseId === exercise.id && new Date(p.date).toDateString() === new Date().toDateString())) return prev;
+      return [...prev, {
+        id: generateId(),
+        exerciseId: exercise.id,
+        name: exercise.name,
+        category: typeof exercise.category === 'object' ? exercise.category?.name : exercise.category,
+        sets: 3,
+        reps: 12,
+        completed: false,
+        date: new Date().toISOString(),
+      }];
+    });
+  }, [setWorkoutPlans]);
+
+  const removeFromPlan = useCallback((planId) => {
+    setWorkoutPlans((prev) => prev.filter((p) => p.id !== planId));
+  }, [setWorkoutPlans]);
+
+  const togglePlanComplete = useCallback((planId) => {
+    setWorkoutPlans((prev) => prev.map((p) => p.id === planId ? { ...p, completed: !p.completed } : p));
+  }, [setWorkoutPlans]);
+
+  const updatePlanItem = useCallback((planId, updates) => {
+    setWorkoutPlans((prev) => prev.map((p) => p.id === planId ? { ...p, ...updates } : p));
+  }, [setWorkoutPlans]);
+
+  const clearPlan = useCallback((dateStr) => {
+    const target = dateStr || new Date().toDateString();
+    setWorkoutPlans((prev) => prev.filter((p) => new Date(p.date).toDateString() !== target));
+  }, [setWorkoutPlans]);
+
   // --- Bookmarks ---
   const toggleBookmark = useCallback((exerciseId) => {
     setBookmarks((prev) =>
@@ -51,21 +105,30 @@ export const FitnessProvider = ({ children }) => {
     const today = new Date().toDateString();
     const todayMeals = meals.filter((m) => new Date(m.date).toDateString() === today);
     const todayWorkouts = workoutLogs.filter((w) => new Date(w.date).toDateString() === today);
+    const todayWater = waterLogs.filter((w) => new Date(w.date).toDateString() === today);
+    
+    // Count completed exercises from Workout Planner
+    const completedPlansAll = workoutPlans.filter((p) => p.completed);
+    const completedPlansToday = workoutPlans.filter((p) => p.completed && new Date(p.date).toDateString() === today);
+
     return {
+      water: todayWater.reduce((sum, w) => sum + (w.amount || 0), 0),
       calories: todayMeals.reduce((sum, m) => sum + (m.calories || 0), 0),
       protein: todayMeals.reduce((sum, m) => sum + (m.protein || 0), 0),
       carbs: todayMeals.reduce((sum, m) => sum + (m.carbs || 0), 0),
       fat: todayMeals.reduce((sum, m) => sum + (m.fat || 0), 0),
-      workoutsToday: todayWorkouts.length,
-      totalWorkouts: workoutLogs.length,
+      workoutsToday: todayWorkouts.length + completedPlansToday.length,
+      totalWorkouts: workoutLogs.length + completedPlansAll.length,
     };
-  }, [meals, workoutLogs]);
+  }, [meals, workoutLogs, waterLogs, workoutPlans]);
 
   const value = {
     workoutLogs, addWorkout, updateWorkout, deleteWorkout,
     meals, addMeal, updateMeal, deleteMeal,
     goals, setGoals,
     bookmarks, toggleBookmark, isBookmarked,
+    waterLogs, addWater, removeWater,
+    workoutPlans, addToPlan, removeFromPlan, togglePlanComplete, updatePlanItem, clearPlan,
     todayStats,
   };
 

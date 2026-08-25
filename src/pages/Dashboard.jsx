@@ -1,6 +1,6 @@
 // Dashboard Page — Protected (Lectures 49-54, 73-78: useMemo, Charts)
 import { useMemo } from 'react';
-import { FiActivity, FiTarget, FiTrendingUp, FiCalendar } from 'react-icons/fi';
+import { FiActivity, FiTarget, FiTrendingUp, FiCalendar, FiDroplet } from 'react-icons/fi';
 import { useFitness } from '../context/FitnessContext';
 import { useAuth } from '../context/AuthContext';
 import { Bar, Doughnut } from 'react-chartjs-2';
@@ -12,7 +12,7 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Tooltip, Le
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const { workoutLogs, meals, todayStats, goals } = useFitness();
+  const { workoutLogs, meals, todayStats, goals, addWater, removeWater } = useFitness();
 
   // Weekly calories chart data (useMemo for performance)
   const weeklyData = useMemo(() => {
@@ -75,6 +75,19 @@ const Dashboard = () => {
 
         {/* Stats Cards */}
         <div className="dash-stats">
+          <div className="dash-stat-card">
+            <div className="stat-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span><FiDroplet style={{ marginRight: 6 }} />Water</span>
+              <div style={{ display: 'flex', gap: '4px' }}>
+                <button onClick={() => removeWater()} className="btn" style={{ padding: '2px 8px', fontSize: '0.75rem', borderRadius: '4px', height: 'auto', minHeight: 'unset', background: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)' }}>-</button>
+                <button onClick={() => addWater(1)} className="btn btn-primary" style={{ padding: '2px 8px', fontSize: '0.75rem', borderRadius: '4px', height: 'auto', minHeight: 'unset' }}>+1 Glass</button>
+              </div>
+            </div>
+            <div className="stat-value" style={{ color: '#38BDF8' }}>
+              {todayStats.water} <span style={{ fontSize: '1rem', color: 'var(--color-text-muted)' }}>glasses</span>
+              <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginLeft: '8px', fontWeight: 'normal' }}>({todayStats.water * 250} ml)</span>
+            </div>
+          </div>
           <div className="dash-stat-card">
             <div className="stat-label"><FiActivity style={{ marginRight: 6 }} />Calories Today</div>
             <div className="stat-value" style={{ color: 'var(--color-accent)' }}>{todayStats.calories}</div>
